@@ -1,0 +1,11 @@
+{
+  "name": "pwd",
+  "version": "0.0.0",
+  "description": "Editor de imagenes",
+  "main": "index.js",
+  "scripts": {
+    "test": "mocha"
+  },
+  "author": "Los molones",
+  "license": "ISC"
+}

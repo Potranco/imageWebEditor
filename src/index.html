@@ -1,0 +1,39 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image web editor</title>
+    <script type="text/javascript" src="imageWebEditor.js"></script>
+</head>
+<body>
+<h1>Image web editor 0.01</h1>
+<p>
+    
+<a href="javascript:editor.rotateAngle(90);">+90</a>
+    <input type="file" name="imagen">
+   <a href="javascript:editor.rotateAngle(-90);">-90</a>
+   <a href="javascript:editor.rotateAngle(180);">+180</a>
+   <a href="javascript:editor.rotateAngle(-180);">-180</a>
+   <a href="javascript:editor.flipVertical();">V. vertical</a>
+   <a href="javascript:editor.flipHorizontal();">V. Horizontal</a>
+   <a href="javascript:editor.grayScale();">Greyscale</a>
+   <a href="javascript:editor.scaleImage();">Scale 100%</a>
+   <a href="javascript:editor.instagramFilter('toaster');">InstagramFilter Toaster</a>
+   <a href="javascript:editor.brightness();">Brillo</a>
+   <a href="javascript:editor.invertColors();">Invertir Colores</a>
+   <a href="javascript:editor.centerImage();">Center</a>
+   
+   
+
+
+    <a href="javascript:editor.cleanctx();">Clean</a>
+    <div id="ImageDisplay" style="position:relative">
+        <div style="position:absolute;top:0px;left:0px;right:0px;bottom:0px;"></div>
+        <img id="" src="" style="position: relative" alt="Response to display image">
+    </div>
+    
+        
+</p>
+</body>
+</html>
