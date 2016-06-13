@@ -18,17 +18,18 @@ function imageWebEditor(image,imgResponseId){
   this.rotate=0;
   this.positionX=0;
   this.positionY=0;
+  this.dragImage=false;
+   
+  
   self=this;
-  document.querySelector('#'+this.imgResponseId+' img').onmousedown=function(event){
-  
-    event.target.style.cursor='move';
-  
-    this.onmousemove=function(event){
-      
-      self.moveImage(event.offsetX,event.offsetY);
-    };
 
-  };
+  document.querySelector('#'+this.imgResponseId+' img').onmousedown=function (e){
+    self.initMoveImage(e);
+  }
+  document.querySelector('#'+this.imgResponseId+' img').onmouseup=function (e){
+    self.closeMoveImage(e);
+  }
+
   document.querySelector('#'+this.imgResponseId+' img').addEventListener('mouseup',this.desactiveDragDrop,false);
   
 }
@@ -65,7 +66,6 @@ imageWebEditor.prototype.centerImage=function(){
     this.ctx.drawImage(this.image,imageleft,imagetop,this.image.width,this.image.height);
     this.positionX=imageleft;
     this.positionY=imagetop;
-    console.log(this.positionX);
     this.returnImage();
 };
 
@@ -169,17 +169,6 @@ imageWebEditor.prototype.scaleImage=function(){
     this.returnImage();
 };
 
-
-imageWebEditor.prototype.moveImage=function(x,y){
-  newPositionX = (x == null) ? this.positionX : x;
-  newPositionY = (y == null) ? this.positionY : y;  
-  this.cleanctx();
-  
-  
-  this.ctx.drawImage(this.image,newPositionX,newPositionY,this.canvas.width,this.canvas.height,0,0,this.canvas.width,this.canvas.height);
-  this.returnImage();
-
-};
 
 
 
@@ -340,6 +329,61 @@ imageWebEditor.prototype.blend=function (background, foreground, width, height, 
  }
 
  return top;
+}
+
+
+imageWebEditor.prototype.initMoveImage=function(e){
+   
+    windowClickX = parseInt(e.clientX - this.width);
+    windowClickY = parseInt(e.clientY - this.height);
+    
+    if (this.positionX<0) positionX=0;
+    if (this.positionY<0) positionY=0;
+    if ((this.positionX+this.image.width)>this.canvas.width) positionW=this.canvas.width;
+    if ((this.positionY+this.image.height)>this.canvas.height) positionH=this.canvas.height;
+    
+    event.target.style.cursor='move';
+    self=this;
+    document.querySelector('#'+this.imgResponseId+' img').onmousemove=function(event){  
+      self.moveImage(event.offsetX,event.offsetY);
+    };
+};
+
+
+imageWebEditor.prototype.moveImage=function(x,y){
+
+  newPositionX = (x == null) ? this.positionX : ((this.image.width/2)*-1)+x;
+  newPositionY = (y == null) ? this.positionY : ((this.image.height/2)*-1)+y;
+
+  this.cleanctx();
+  
+  this.ctx.drawImage(this.image,newPositionX,newPositionY,this.image.width,this.image.height);
+  this.returnImage();
+  this.positionX=newPositionX;
+  this.positionY=newPositionY;
+
+};
+
+imageWebEditor.prototype.closeMoveImage=function(e) {
+  event.target.style.cursor='auto';
+   document.querySelector('#'+this.imgResponseId+' img').onmousemove=function(event){  
+      
+    };
+};
+
+
+imageWebEditor.prototype.findPos=function (obj) {
+  
+    var curleft = curtop = 0;
+
+    if (obj.offsetParent) {
+        do {
+            curleft += obj.offsetLeft;
+            curtop += obj.offsetTop;
+        } while (obj = obj.offsetParent);
+
+        return [curleft, curtop];
+    }
 }
 
 var editor;
