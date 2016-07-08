@@ -11,6 +11,7 @@ function imageWebEditor(image,imgResponseId){
   this.loadImage(this.urlImage);
   this.imgResponseId=imgResponseId;
   this.auxImage=false;
+  this.imageReBase=false;
   document.getElementById(imgResponseId).style.background='url('+this.urlImage+') no-repeat center center';
   document.querySelector('#'+imgResponseId+' div').style.background='rgba(0, 0, 0, 0.5)';
   document.querySelector('#'+imgResponseId+' div').style.opacity='0.6';
@@ -21,6 +22,8 @@ function imageWebEditor(image,imgResponseId){
   this.dragImage=false;
   this.dragPosition=[0,0];
   this.scale=0;
+  this.grayScaleAction=false;
+  this.imageFilterAction=[];
    
   
   self=this;
@@ -45,6 +48,7 @@ imageWebEditor.prototype.loadImage=function(url){
   self=this;
   
   this.image.onload=function(e){
+    self.imageReBase=this;
     self.centerImage();
     self.returnImage();
   };
@@ -68,6 +72,8 @@ imageWebEditor.prototype.centerImage=function(){
     this.ctx.drawImage(this.image,imageleft,imagetop,this.image.width,this.image.height);
     this.positionX=imageleft;
     this.positionY=imagetop;
+    this.scale=0;
+    this.applyAllFilters();
     this.returnImage();
 };
 
@@ -105,6 +111,7 @@ imageWebEditor.prototype.rotateAngle=function(angle) {
  imagetop=((this.image.height/2)*-1)+this.canvas.height/2;
  this.ctx.drawImage(auxImage,-auxImage.width/2,-auxImage.height/2);
  this.ctx.restore();
+ this.applyAllFilters();
  this.returnImage();
 }
 
@@ -167,6 +174,7 @@ imageWebEditor.prototype.grayScale=function () {
 
  this.cleanctx();
  this.ctx.putImageData(imageData, 0, 0);
+ this.grayScaleAction=true;
  this.returnImage();
 }
 
@@ -176,110 +184,112 @@ imageWebEditor.prototype.scaleImage=function(){
     imagetop=(this.image.height/4)*-1;
     this.ctx.drawImage(this.image,0,0,this.canvas.width,this.canvas.height);
     this.scale=100;
+    this.applyAllFilters();
     this.returnImage();
 };
 
 
+imageWebEditor.prototype.imageFilter=function (filter,saveFilter) {
 
+var imageData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+this.ctx.save();
+var lengthArray = imageData.data.length;
 
-imageWebEditor.prototype.sepia=function () {
- 
- this.ctx.save();
-
- var canvasWidth = this.canvas.width;
- var canvasHeight = this.canvas.height;
- this.image.crossOrigin="anonymous";
- var imageData = this.ctx.getImageData(0, 0, canvasWidth, canvasHeight);
-
- var lengthArray = imageData.data.length;
-
- for(var i = 0; i < lengthArray; i += 4) {
-   var red = imageData.data[i];
-   var green = imageData.data[i + 1];
-   var blue = imageData.data[i + 2];
-   var alpha = imageData.data[i + 3];
-
-   var outRed = (red * .393) + (green *.769) + (blue * .189); // calculate value for red channel in pixel
-   var outGreen = (red * .349) + (green *.686) + (blue * .168);
-   var outBlue = (red * .272) + (green *.534) + (blue * .131);
-
-   imageData.data[i] = outRed < 255 ? outRed : 255; // check if the value is less than 255, if more set it to 255
-   imageData.data[i + 1] = outGreen < 255 ? outGreen : 255;
-   imageData.data[i + 2] = outBlue < 255 ? outBlue : 255
-   imageData.data[i + 3] = alpha;
- }
-       
-this.cleanctx();
-this.ctx.putImageData(imageData, 0, 0);
-this.returnImage();
+switch (filter){
+ case 'brillo+':
+   imageData=this.brightness(imageData,lengthArray,1.3);
+ break;
+ case 'brillo-':
+   imageData=this.brightness(imageData,lengthArray,0.7);
+ break;
+ case 'sepia':
+   imageData=this.sepia(imageData,lengthArray);
+ break;
+ case 'invertColors':
+   imageData=this.invertColors(imageData,lengthArray);
+ break;
+case 'grayScale':
+   imageData=this.grayScale();
+   if (saveFilter!=false) this.imageFilterAction.push(filter);
+   return true;
+ break;
+ default: return false;
 }
 
-imageWebEditor.prototype.brightness=function () {
- 
- this.ctx.save();
+if (saveFilter!=false) this.imageFilterAction.push(filter);
 
- var canvasWidth = this.canvas.width;
- var canvasHeight = this.canvas.height;
- this.image.crossOrigin="anonymous";
- var imageData = this.ctx.getImageData(0, 0, canvasWidth, canvasHeight);
-
- var lengthArray = imageData.data.length;
- var brightnessMul = 1.3; // brightness multiplier
- 
- for(var i = 0; i < lengthArray; i += 4) {
-     
-     var red = imageData.data[i]; // Extract original red color [0 to 255]. Similarly for green and blue below
-     var green = imageData.data[i + 1];
-     var blue = imageData.data[i + 2];
-     
-     brightenedRed = brightnessMul * red;
-     brightenedGreen = brightnessMul * green;
-     brightenedBlue = brightnessMul * blue;
-                 
-     imageData.data[i] = brightenedRed;
-     imageData.data[i + 1] = brightenedGreen;
-     imageData.data[i + 2] = brightenedBlue;
- }
-       
 
 this.cleanctx();
 this.ctx.putImageData(imageData, 0, 0);
 this.returnImage();
 
+return lengthArray;
 }
 
-imageWebEditor.prototype.invertColors=function () {
- 
- this.ctx.save();
+imageWebEditor.prototype.sepia=function (imageData,lengthArray) {
 
- var canvasWidth = this.canvas.width;
- var canvasHeight = this.canvas.height;
- this.image.crossOrigin="anonymous";
- var imageData = this.ctx.getImageData(0, 0, canvasWidth, canvasHeight);
+for(var i = 0; i < lengthArray; i += 4) {
+  var red = imageData.data[i];
+  var green = imageData.data[i + 1];
+  var blue = imageData.data[i + 2];
+  var alpha = imageData.data[i + 3];
 
- var lengthArray = imageData.data.length;
+  var outRed = (red * .393) + (green *.769) + (blue * .189); // calculate value for red channel in pixel
+  var outGreen = (red * .349) + (green *.686) + (blue * .168);
+  var outBlue = (red * .272) + (green *.534) + (blue * .131);
 
- for(var i = 0; i < lengthArray; i += 4) {
-     
-   var r = imageData.data[i]; // Red color lies between 0 and 255
-   var g = imageData.data[i + 1]; // Green color lies between 0 and 255
-   var b = imageData.data[i + 2]; // Blue color lies between 0 and 255
-   var a = imageData.data[i + 3]; // Transparency lies between 0 and 255
-
-   var invertedRed = 255 - r;
-   var invertedGreen = 255 - g;
-   var invertedBlue = 255 - b;
-
-   imageData.data[i] = invertedRed;
-   imageData.data[i + 1] = invertedGreen;
-   imageData.data[i + 2] = invertedBlue;
- }
-       
-this.cleanctx();
-this.ctx.putImageData(imageData, 0, 0);
-this.returnImage();
+  imageData.data[i] = outRed < 255 ? outRed : 255; // check if the value is less than 255, if more set it to 255
+  imageData.data[i + 1] = outGreen < 255 ? outGreen : 255;
+  imageData.data[i + 2] = outBlue < 255 ? outBlue : 255
+  imageData.data[i + 3] = alpha;
 }
 
+return imageData;    
+
+}
+
+imageWebEditor.prototype.brightness=function (imageData,lengthArray,brightness) {
+
+var brightnessMul = brightness; // brightness multiplier
+
+for(var i = 0; i < lengthArray; i += 4) {
+    
+    var red = imageData.data[i]; // Extract original red color [0 to 255]. Similarly for green and blue below
+    var green = imageData.data[i + 1];
+    var blue = imageData.data[i + 2];
+    
+    brightenedRed = brightnessMul * red;
+    brightenedGreen = brightnessMul * green;
+    brightenedBlue = brightnessMul * blue;
+                
+    imageData.data[i] = brightenedRed;
+    imageData.data[i + 1] = brightenedGreen;
+    imageData.data[i + 2] = brightenedBlue;
+}
+
+return imageData; 
+}
+
+imageWebEditor.prototype.invertColors=function (imageData,lengthArray) {
+
+for(var i = 0; i < lengthArray; i += 4) {
+    
+  var r = imageData.data[i]; // Red color lies between 0 and 255
+  var g = imageData.data[i + 1]; // Green color lies between 0 and 255
+  var b = imageData.data[i + 2]; // Blue color lies between 0 and 255
+  var a = imageData.data[i + 3]; // Transparency lies between 0 and 255
+
+  var invertedRed = 255 - r;
+  var invertedGreen = 255 - g;
+  var invertedBlue = 255 - b;
+
+  imageData.data[i] = invertedRed;
+  imageData.data[i + 1] = invertedGreen;
+  imageData.data[i + 2] = invertedBlue;
+}
+      
+return imageData; 
+}
 
 imageWebEditor.prototype.instagramFilter=function (tipoFiltro) {
 
@@ -428,7 +438,15 @@ imageWebEditor.prototype.restoreBase=function() {
     this.dragImage=false;
     this.dragPosition=[0,0];
     this.scale=0;
+    this.imageFilterAction=[];
     this.returnImage();
+}
+
+imageWebEditor.prototype.applyAllFilters=function() {
+  aux=this.imageFilterAction.length;
+  for (i=0;i<aux;i++) {
+    this.imageFilter(this.imageFilterAction[i],false);    
+  }
 }
 
 
