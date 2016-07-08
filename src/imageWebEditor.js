@@ -190,6 +190,8 @@ imageWebEditor.prototype.scaleImage=function(){
     this.ctx.drawImage(this.image,0,0,this.canvas.width,this.canvas.height);
     this.scale=100;
     this.applyAllFilters();
+    this.positionX=0;
+    this.positionY=0;
     this.returnImage();
 };
 
