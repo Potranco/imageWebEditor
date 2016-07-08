@@ -19,6 +19,7 @@ function imageWebEditor(image,imgResponseId){
   this.positionX=0;
   this.positionY=0;
   this.dragImage=false;
+  this.dragPosition=[0,0];
    
   
   self=this;
@@ -94,7 +95,7 @@ imageWebEditor.prototype.rotateAngle=function(angle) {
  this.ctx.rotate(this.rotate*Math.PI/180);
  imageleft=((this.image.width/2)*-1)+this.canvas.width/2;
  imagetop=((this.image.height/2)*-1)+this.canvas.height/2;
- this.ctx.drawImage(this.image,-this.image.width/2,-this.image.width/2);
+ this.ctx.drawImage(this.image,-this.image.width/2,-this.image.height/2);
  this.ctx.restore();
  this.returnImage();
 }
@@ -344,17 +345,38 @@ imageWebEditor.prototype.initMoveImage=function(e){
     
     event.target.style.cursor='move';
     self=this;
-    document.querySelector('#'+this.imgResponseId+' img').onmousemove=function(event){  
+    this.dragImage=true;
+    document.querySelector('#'+this.imgResponseId+' img').onmousemove=function(event){
+      event.preventDefault();
       self.moveImage(event.offsetX,event.offsetY);
     };
 };
 
 
 imageWebEditor.prototype.moveImage=function(x,y){
-
+  //console.log(this.dragImage)
+  if (this.dragImage!==true) return false;
+  
   newPositionX = (x == null) ? this.positionX : ((this.image.width/2)*-1)+x;
   newPositionY = (y == null) ? this.positionY : ((this.image.height/2)*-1)+y;
-
+  
+  if (this.dragPosition[0]===0) {this.dragPosition[0]=1;}
+  else {
+    newPositionX=(this.positionX)+(this.dragPosition[0]-x);
+    this.dragPosition[0]=x;
+  }
+  if (this.dragPosition[1]===0) {this.dragPosition[1]=1;}
+  else {
+    newPositionY=(this.positionY)+(this.dragPosition[1]-y);
+    this.dragPosition[1]=y;
+  }
+  console.log(this.dragPosition[0]);
+  //this.dragPosition[0]=this.positionX+newPositionX;
+  //this.dragPosition[1]=this.positionY+newPositionY;
+  
+  //newPositionX=((this.image.width/2)*-1)+this.dragPosition[0];
+  //newPositionY=((this.image.height/2)*-1)+this.dragPosition[1];
+  
   this.cleanctx();
   
   this.ctx.drawImage(this.image,newPositionX,newPositionY,this.image.width,this.image.height);
@@ -366,9 +388,7 @@ imageWebEditor.prototype.moveImage=function(x,y){
 
 imageWebEditor.prototype.closeMoveImage=function(e) {
   event.target.style.cursor='auto';
-   document.querySelector('#'+this.imgResponseId+' img').onmousemove=function(event){  
-      
-    };
+  this.dragImage=true;
 };
 
 
