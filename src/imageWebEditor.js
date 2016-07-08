@@ -94,7 +94,7 @@ imageWebEditor.prototype.rotateAngle=function(angle) {
  this.ctx.rotate(this.rotate*Math.PI/180);
  imageleft=((this.image.width/2)*-1)+this.canvas.width/2;
  imagetop=((this.image.height/2)*-1)+this.canvas.height/2;
- this.ctx.drawImage(this.image,-this.image.width/2,-this.image.width/2);
+ this.ctx.drawImage(this.image,-this.image.width/2,-this.image.height/2);
  this.ctx.restore();
  this.returnImage();
 }
