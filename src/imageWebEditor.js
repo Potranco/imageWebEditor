@@ -20,6 +20,7 @@ function imageWebEditor(image,imgResponseId){
   this.positionY=0;
   this.dragImage=false;
   this.dragPosition=[0,0];
+  this.scale=0;
    
   
   self=this;
@@ -167,6 +168,7 @@ imageWebEditor.prototype.scaleImage=function(){
     imageleft=(this.image.width/4)*-1;
     imagetop=(this.image.height/4)*-1;
     this.ctx.drawImage(this.image,0,0,this.canvas.width,this.canvas.height);
+    this.scale=100;
     this.returnImage();
 };
 
