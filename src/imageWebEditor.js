@@ -103,7 +103,6 @@ imageWebEditor.prototype.rotateAngle=function(angle) {
  this.ctx.rotate(this.rotate*Math.PI/180);
  imageleft=((this.image.width/2)*-1)+this.canvas.width/2;
  imagetop=((this.image.height/2)*-1)+this.canvas.height/2;
- 
  this.ctx.drawImage(auxImage,-auxImage.width/2,-auxImage.height/2);
  this.ctx.restore();
  this.returnImage();
@@ -182,36 +181,18 @@ imageWebEditor.prototype.scaleImage=function(){
 
 
 
-imageWebEditor.prototype.imageFilter=function (filter) {
 
- var imageData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
+imageWebEditor.prototype.sepia=function () {
+ 
  this.ctx.save();
+
+ var canvasWidth = this.canvas.width;
+ var canvasHeight = this.canvas.height;
+ this.image.crossOrigin="anonymous";
+ var imageData = this.ctx.getImageData(0, 0, canvasWidth, canvasHeight);
+
  var lengthArray = imageData.data.length;
 
- switch (filter){
-  case 'brillo+':
-    imageData=this.brightness(imageData,lengthArray,1.3);
-  break;
-  case 'brillo-':
-    imageData=this.brightness(imageData,lengthArray,0.7);
-  break;
-  case 'sepia':
-    imageData=this.sepia(imageData,lengthArray);
-  break;
-  case 'invertColors':
-    imageData=this.invertColors(imageData,lengthArray);
-  break;
- }
-
- this.cleanctx();
- this.ctx.putImageData(imageData, 0, 0);
- this.returnImage();
- 
- return lengthArray;
-}
-
-imageWebEditor.prototype.sepia=function (imageData,lengthArray) {
- 
  for(var i = 0; i < lengthArray; i += 4) {
    var red = imageData.data[i];
    var green = imageData.data[i + 1];
@@ -227,14 +208,23 @@ imageWebEditor.prototype.sepia=function (imageData,lengthArray) {
    imageData.data[i + 2] = outBlue < 255 ? outBlue : 255
    imageData.data[i + 3] = alpha;
  }
-
- return imageData;     
-
+       
+this.cleanctx();
+this.ctx.putImageData(imageData, 0, 0);
+this.returnImage();
 }
 
-imageWebEditor.prototype.brightness=function (imageData,lengthArray,brightness) {
+imageWebEditor.prototype.brightness=function () {
  
- var brightnessMul = brightness; // brightness multiplier
+ this.ctx.save();
+
+ var canvasWidth = this.canvas.width;
+ var canvasHeight = this.canvas.height;
+ this.image.crossOrigin="anonymous";
+ var imageData = this.ctx.getImageData(0, 0, canvasWidth, canvasHeight);
+
+ var lengthArray = imageData.data.length;
+ var brightnessMul = 1.3; // brightness multiplier
  
  for(var i = 0; i < lengthArray; i += 4) {
      
@@ -250,11 +240,24 @@ imageWebEditor.prototype.brightness=function (imageData,lengthArray,brightness) 
      imageData.data[i + 1] = brightenedGreen;
      imageData.data[i + 2] = brightenedBlue;
  }
- 
- return imageData; 
+       
+
+this.cleanctx();
+this.ctx.putImageData(imageData, 0, 0);
+this.returnImage();
+
 }
 
-imageWebEditor.prototype.invertColors=function (imageData,lengthArray) {
+imageWebEditor.prototype.invertColors=function () {
+ 
+ this.ctx.save();
+
+ var canvasWidth = this.canvas.width;
+ var canvasHeight = this.canvas.height;
+ this.image.crossOrigin="anonymous";
+ var imageData = this.ctx.getImageData(0, 0, canvasWidth, canvasHeight);
+
+ var lengthArray = imageData.data.length;
 
  for(var i = 0; i < lengthArray; i += 4) {
      
@@ -272,10 +275,10 @@ imageWebEditor.prototype.invertColors=function (imageData,lengthArray) {
    imageData.data[i + 2] = invertedBlue;
  }
        
- return imageData; 
+this.cleanctx();
+this.ctx.putImageData(imageData, 0, 0);
+this.returnImage();
 }
-
-
 
 
 imageWebEditor.prototype.instagramFilter=function (tipoFiltro) {
@@ -411,6 +414,23 @@ imageWebEditor.prototype.findPos=function (obj) {
         return [curleft, curtop];
     }
 }
+
+
+imageWebEditor.prototype.restoreBase=function() {
+    this.cleanctx();
+    imageleft=((this.image.width/2)*-1)+this.canvas.width/2;
+    imagetop=((this.image.height/2)*-1)+this.canvas.height/2; 
+    
+    this.ctx.drawImage(this.image,imageleft,imagetop,this.image.width,this.image.height);
+    this.positionX=imageleft;
+    this.positionY=imagetop;
+    this.rotate=0;
+    this.dragImage=false;
+    this.dragPosition=[0,0];
+    this.scale=0;
+    this.returnImage();
+}
+
 
 var editor;
 window.onload=function(){
