@@ -20,7 +20,12 @@ function imageWebEditor(image,imgResponseId){
   this.positionX=0;
   this.positionY=0;
   this.dragImage=false;
-  this.dragPosition=[0,0];
+  this.dragPosition={
+    initX:0,
+    goToX:0,
+    initY:0,
+    goToY:0,
+    };
   this.scale=0;
   this.grayScaleAction=false;
   this.imageFilterAction=[];
@@ -353,61 +358,54 @@ imageWebEditor.prototype.blend=function (background, foreground, width, height, 
 
 
 imageWebEditor.prototype.initMoveImage=function(e){
-   
-    windowClickX = parseInt(e.clientX - this.width);
-    windowClickY = parseInt(e.clientY - this.height);
+    if (!this.dragImage) {this.dragImage=true;}
+    else {this.closeMoveImage();}
     
-    if (this.positionX<0) positionX=0;
-    if (this.positionY<0) positionY=0;
-    if ((this.positionX+this.image.width)>this.canvas.width) positionW=this.canvas.width;
-    if ((this.positionY+this.image.height)>this.canvas.height) positionH=this.canvas.height;
+    this.dragPosition.initX = e.offsetX;
+    this.dragPosition.initY = e.offsetY;
     
     event.target.style.cursor='move';
     self=this;
-    this.dragImage=true;
     document.querySelector('#'+this.imgResponseId+' img').onmousemove=function(event){
       event.preventDefault();
       self.moveImage(event.offsetX,event.offsetY);
     };
+    
+    document.querySelector('#'+this.imgResponseId+' img').onmouseout=function(event){
+      self.closeMoveImage();
+      
+    };
+    
+    
 };
 
 
 imageWebEditor.prototype.moveImage=function(x,y){
-  //console.log(this.dragImage)
-  if (this.dragImage!==true) return false;
   
-  newPositionX = (x == null) ? this.positionX : ((this.image.width/2)*-1)+x;
-  newPositionY = (y == null) ? this.positionY : ((this.image.height/2)*-1)+y;
   
-  if (this.dragPosition[0]===0) {this.dragPosition[0]=1;}
-  else {
-    newPositionX=(this.positionX)+(this.dragPosition[0]-x);
-    this.dragPosition[0]=x;
-  }
-  if (this.dragPosition[1]===0) {this.dragPosition[1]=1;}
-  else {
-    newPositionY=(this.positionY)+(this.dragPosition[1]-y);
-    this.dragPosition[1]=y;
-  }
-  console.log(this.dragPosition[0]);
-  //this.dragPosition[0]=this.positionX+newPositionX;
-  //this.dragPosition[1]=this.positionY+newPositionY;
+  this.dragPosition.goToX=this.dragPosition.initX-x;
+  this.dragPosition.goToY=this.dragPosition.initY-y;
   
-  //newPositionX=((this.image.width/2)*-1)+this.dragPosition[0];
-  //newPositionY=((this.image.height/2)*-1)+this.dragPosition[1];
-  
+   
   this.cleanctx();
+    imageleft=this.positionX+(this.dragPosition.goToX)*-1;
+    imagetop=this.positionY+(this.dragPosition.goToY)*-1; 
+    
+    this.ctx.drawImage(this.image,imageleft,imagetop,this.image.width,this.image.height);
+    this.scale=0;
+    this.applyAllFilters();
+    this.returnImage();
   
-  this.ctx.drawImage(this.image,newPositionX,newPositionY,this.image.width,this.image.height);
-  this.returnImage();
-  this.positionX=newPositionX;
-  this.positionY=newPositionY;
+  
 
 };
 
 imageWebEditor.prototype.closeMoveImage=function(e) {
   event.target.style.cursor='auto';
-  this.dragImage=true;
+  document.querySelector('#'+this.imgResponseId+' img').onmousemove=false;
+  this.positionX+=(this.dragPosition.goToX)*-1;
+  this.positionY+=(this.dragPosition.goToY)*-1;
+  this.dragImage=false;
 };
 
 
