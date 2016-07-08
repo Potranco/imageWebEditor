@@ -182,18 +182,36 @@ imageWebEditor.prototype.scaleImage=function(){
 
 
 
+imageWebEditor.prototype.imageFilter=function (filter) {
 
-imageWebEditor.prototype.sepia=function () {
- 
+ var imageData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
  this.ctx.save();
-
- var canvasWidth = this.canvas.width;
- var canvasHeight = this.canvas.height;
- this.image.crossOrigin="anonymous";
- var imageData = this.ctx.getImageData(0, 0, canvasWidth, canvasHeight);
-
  var lengthArray = imageData.data.length;
 
+ switch (filter){
+  case 'brillo+':
+    imageData=this.brightness(imageData,lengthArray,1.3);
+  break;
+  case 'brillo-':
+    imageData=this.brightness(imageData,lengthArray,0.7);
+  break;
+  case 'sepia':
+    imageData=this.sepia(imageData,lengthArray);
+  break;
+  case 'invertColors':
+    imageData=this.invertColors(imageData,lengthArray);
+  break;
+ }
+
+ this.cleanctx();
+ this.ctx.putImageData(imageData, 0, 0);
+ this.returnImage();
+ 
+ return lengthArray;
+}
+
+imageWebEditor.prototype.sepia=function (imageData,lengthArray) {
+ 
  for(var i = 0; i < lengthArray; i += 4) {
    var red = imageData.data[i];
    var green = imageData.data[i + 1];
@@ -209,23 +227,14 @@ imageWebEditor.prototype.sepia=function () {
    imageData.data[i + 2] = outBlue < 255 ? outBlue : 255
    imageData.data[i + 3] = alpha;
  }
-       
-this.cleanctx();
-this.ctx.putImageData(imageData, 0, 0);
-this.returnImage();
+
+ return imageData;     
+
 }
 
-imageWebEditor.prototype.brightness=function () {
+imageWebEditor.prototype.brightness=function (imageData,lengthArray,brightness) {
  
- this.ctx.save();
-
- var canvasWidth = this.canvas.width;
- var canvasHeight = this.canvas.height;
- this.image.crossOrigin="anonymous";
- var imageData = this.ctx.getImageData(0, 0, canvasWidth, canvasHeight);
-
- var lengthArray = imageData.data.length;
- var brightnessMul = 1.3; // brightness multiplier
+ var brightnessMul = brightness; // brightness multiplier
  
  for(var i = 0; i < lengthArray; i += 4) {
      
@@ -241,24 +250,11 @@ imageWebEditor.prototype.brightness=function () {
      imageData.data[i + 1] = brightenedGreen;
      imageData.data[i + 2] = brightenedBlue;
  }
-       
-
-this.cleanctx();
-this.ctx.putImageData(imageData, 0, 0);
-this.returnImage();
-
+ 
+ return imageData; 
 }
 
-imageWebEditor.prototype.invertColors=function () {
- 
- this.ctx.save();
-
- var canvasWidth = this.canvas.width;
- var canvasHeight = this.canvas.height;
- this.image.crossOrigin="anonymous";
- var imageData = this.ctx.getImageData(0, 0, canvasWidth, canvasHeight);
-
- var lengthArray = imageData.data.length;
+imageWebEditor.prototype.invertColors=function (imageData,lengthArray) {
 
  for(var i = 0; i < lengthArray; i += 4) {
      
@@ -276,10 +272,10 @@ imageWebEditor.prototype.invertColors=function () {
    imageData.data[i + 2] = invertedBlue;
  }
        
-this.cleanctx();
-this.ctx.putImageData(imageData, 0, 0);
-this.returnImage();
+ return imageData; 
 }
+
+
 
 
 imageWebEditor.prototype.instagramFilter=function (tipoFiltro) {
