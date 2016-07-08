@@ -89,6 +89,13 @@ imageWebEditor.prototype.createCanvas=function(){
 
 
 imageWebEditor.prototype.rotateAngle=function(angle) {
+  if (this.scale>0) {
+    auxImage=new Image();
+    auxImage.src=this.canvas.toDataURL('image/png');
+ }
+ else {
+    auxImage=this.image;
+ }
  this.rotate=this.rotate+angle;
  this.cleanctx();
  this.ctx.save();
@@ -96,7 +103,8 @@ imageWebEditor.prototype.rotateAngle=function(angle) {
  this.ctx.rotate(this.rotate*Math.PI/180);
  imageleft=((this.image.width/2)*-1)+this.canvas.width/2;
  imagetop=((this.image.height/2)*-1)+this.canvas.height/2;
- this.ctx.drawImage(this.image,-this.image.width/2,-this.image.height/2);
+ 
+ this.ctx.drawImage(auxImage,-auxImage.width/2,-auxImage.height/2);
  this.ctx.restore();
  this.returnImage();
 }
